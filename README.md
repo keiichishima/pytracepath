@@ -13,7 +13,7 @@ $ python tracepath.py -h
 
 ## Usage as a Module
 
-'''
+```
 import tracepath
 
 tp = tracepath.Tracepath('target.example.org')
