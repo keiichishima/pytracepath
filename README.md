@@ -2,6 +2,8 @@
 
 This is a subset version of the `tracepath` command written in Python3. The program supports both IPv4 and IPv6.
 
+Although this software is a pure Python3 code, it may not work platforms other than Linux beacuse of incompatibility of system call parameter and error code values.
+
 
 ## Installation
 
