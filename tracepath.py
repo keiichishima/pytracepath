@@ -11,6 +11,19 @@ import socket
 import struct
 import time
 
+# sock_extended_err origin values
+SO_EE_ORIGIN_LOCAL = 1
+SO_EE_ORIGIN_ICMP = 2
+SO_EE_ORIGIN_ICMP6 = 3
+
+# ICMP time exceeded type and code
+ICMP_TIME_EXCEEDED = 11
+ICMP_EXC_TTL = 0
+
+# ICMPv6 time exceeded type and code
+ICMPV6_TIME_EXCEEDED = 3
+ICMPV6_EXC_HOPLIMIT = 0
+
 # these constants should be defined in the socket module
 SOL_IPV6 = 41
 IP_RECVERR = 11
@@ -57,14 +70,17 @@ class Tracepath(object):
         except socket.error as _e:
             raise _e
         self._socket = None
-        self._port = random.choice(range(*PORT_RANGE))
         self._max_hops = _max_hops
         self._max_continuous_fails = _max_continuous_fails
+        self._history = []
+        # transitional parameters per probe
+        self._start = None
+        self._end = None
+        self._port = random.choice(range(*PORT_RANGE))
         self._ttl = 1
         self._latency = None
         self._peer_info = None
-        self._history = []
-
+        self._errno = 0
 
     @property
     def latency(self):
@@ -77,6 +93,8 @@ class Tracepath(object):
     def _is_final_dest(self):
         if self._dest is None or self._peer_info is None:
             return False
+        if self._errno == errno.ECONNREFUSED:
+            return True
         if self._dest[0] == socket.AF_INET:
             return self._dest[4][0] == self._peer_info[0]
         if self._dest[0] == socket.AF_INET6:
@@ -126,6 +144,7 @@ class Tracepath(object):
         self._start = time.time_ns()
         self._end = None
         self._peer_info = None
+        self._errno = 0
         for _i in range(MAX_SENDTO_TRIES):
             try:
                 if self._dest[0] == socket.AF_INET:
@@ -213,7 +232,8 @@ class Tracepath(object):
                              '=LBBBBLL', _data[:16])
                         _logger.debug(f'errno = {_ee_errno}, origin = {_ee_origin}')
                         self._peer_info = [
-                            socket.inet_ntop(socket.AF_INET6, _data[24:24+16]),
+                            socket.inet_ntop(socket.AF_INET6,
+                                             _data[24:24+16]),
                             struct.unpack('!H', _data[18:20])[0],
                             struct.unpack('!L', _data[20:24])[0],
                             struct.unpack('!L', _data[40:44])[0]
@@ -221,17 +241,35 @@ class Tracepath(object):
                         _logger.debug(f'error packet received from {self._peer_info}')
 
             if _ee_errno == None:
+                # no extended err info
                 return False
+            self._errno = _ee_errno
+            _logger.debug(f'ee_errno = {_ee_errno}, ee_origin = {_ee_origin}, ee_type = {_ee_type}, ee_code = {_ee_code}')
             if _ee_errno == errno.ETIMEDOUT:
                 continue
             if _ee_errno == errno.EMSGSIZE:
+                # XXX
                 continue
-            _logger.debug(f'ee_errno = {_ee_errno}, ee_origin = {_ee_origin}, ee_type = {_ee_type}, ee_code = {_ee_code}')
+            if _ee_errno == errno.EHOSTUNREACH:
+                if (_ee_origin == SO_EE_ORIGIN_ICMP
+                    and _ee_type == ICMP_TIME_EXCEEDED
+                    and _ee_code == ICMP_EXC_TTL):
+                    return True
+                if (_ee_origin == SO_EE_ORIGIN_ICMP6
+                    and _ee_type == ICMPV6_TIME_EXCEEDED
+                    and _ee_code == ICMPV6_EXC_HOPLIMIT):
+                    return True
+                return False
+            if _ee_errno == errno.ENETUNREACH:
+                return False
+            if _ee_errno == errno.EACCES:
+                return False
+
             return True
 
         # Not reached
 
-    def start(self, _display=None):
+    def start(self, _display_callback=None):
         self._create_socket()
         _fail_count = 0
         for _ttl in range(1, self._max_hops + 1):
@@ -247,23 +285,27 @@ class Tracepath(object):
                 {
                     'ttl': _ttl,
                     'peer': self._peer_info,
-                    'latency': self._latency if _status else None
+                    'latency': self._latency if _status else None,
+                    'errno': self._errno
                 }
             )
-            if _display:
-                _display(self._history[-1])
+            if _display_callback:
+                _display_callback(self._history[-1])
             if _fail_count >= MAX_CONTINUOUS_FAILS:
                 _logger.debug(f'continous failure {_fail_count} times')
                 break
             if self._is_final_dest() == True:
                 _logger.debug(f'reached')
                 break
+            if self._errno == errno.EACCES:
+                break
 
-def _display_default(_hist):
+def _display_callback_default(_hist):
     _ttl = _hist['ttl']
     _peer = _hist['peer'][0] if _hist['peer'] else '*'
     _latency = _hist['latency']/1000000 if _hist['latency'] else '*'
-    print(f"{_ttl:3d}: {_peer:30s}: {_latency} ms")
+    _errno = _hist['errno']
+    print(f"{_ttl:3d}: {_peer:30s}: {str(_latency):>10s} ms: [{_errno}]")
     
 
 if __name__ == '__main__':
@@ -290,6 +332,6 @@ if __name__ == '__main__':
                    _ipv4=_args.ipv4,
                    _ipv6=_args.ipv6,
                    _max_hops=_args.max_hops)
-    _t.start(_display=_display_default)
+    _t.start(_display_callback=_display_callback_default)
 
 
