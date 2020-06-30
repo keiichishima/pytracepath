@@ -1,11 +1,11 @@
 # Python Tracepath
 
-This is a clone of tracepath function written in Python3. The program supports both IPv4 and IPv6.
+This is a subset version of the `tracepath` command written in Python3. The program supports both IPv4 and IPv6.
 
 
 ## Installation
 
-Install usinb `pip`, or type `python setup.py install`.
+Install using `pip`, or type `python setup.py install`.
 
 
 ## Usage
