@@ -34,8 +34,10 @@ optional arguments:
 ```
 import tracepath
 
-tp = tracepath.Tracepath('target.example.org')
-tp.start()
+tp = tracepath.Tracepath('target.example.org',
+                         ipv6=True,
+			 max_hops=15)
+print(tp.start())
 ```
 
 The `start()` method will return the histrory of responders of the probe packets.

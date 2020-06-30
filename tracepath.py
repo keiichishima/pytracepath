@@ -48,30 +48,30 @@ class Error(Exception):
 
 class Tracepath(object):
     def __init__(self,
-                 _dest,
-                 _ipv4 = False,
-                 _ipv6 = False,
-                 _max_hops=MAX_HOPS,
-                 _max_continuous_fails=MAX_CONTINUOUS_FAILS):
-        assert(_dest != None)
-        assert(_dest != '')
+                 dest,
+                 ipv4 = False,
+                 ipv6 = False,
+                 max_hops=MAX_HOPS,
+                 max_continuous_fails=MAX_CONTINUOUS_FAILS):
+        assert(dest != None)
+        assert(dest != '')
 
         try:
-            if _ipv4:
+            if ipv4:
                 _family = socket.AF_INET
-            elif _ipv6:
+            elif ipv6:
                 _family = socket.AF_INET6
             else:
                 _family = 0
             self._dest = socket.getaddrinfo(
-                _dest, 0,
+                dest, 0,
                 family=_family,
                 proto=socket.IPPROTO_UDP)[0]
         except socket.error as _e:
             raise _e
         self._socket = None
-        self._max_hops = _max_hops
-        self._max_continuous_fails = _max_continuous_fails
+        self._max_hops = max_hops
+        self._max_continuous_fails = max_continuous_fails
         self._history = []
         # transitional parameters per probe
         self._start = None
@@ -270,8 +270,9 @@ class Tracepath(object):
 
         # Not reached
 
-    def start(self, _display_callback=None):
+    def start(self, display_callback=None):
         self._create_socket()
+        self._history = []
         _fail_count = 0
         for _ttl in range(1, self._max_hops + 1):
             self._ttl = _ttl
@@ -290,8 +291,8 @@ class Tracepath(object):
                     'errno': self._errno
                 }
             )
-            if _display_callback:
-                _display_callback(self._history[-1])
+            if display_callback:
+                display_callback(self._history[-1])
             if _fail_count >= MAX_CONTINUOUS_FAILS:
                 _logger.debug(f'continous failure {_fail_count} times')
                 break
@@ -300,12 +301,13 @@ class Tracepath(object):
                 break
             if self._errno == errno.EACCES:
                 break
+        return self._history
 
-def _display_callback_default(_hist):
-    _ttl = _hist['ttl']
-    _peer = _hist['peer'][0] if _hist['peer'] else '*'
-    _latency = _hist['latency']/1000000 if _hist['latency'] else '*'
-    _errno = _hist['errno']
+def _display_callback_default(hist):
+    _ttl = hist['ttl']
+    _peer = hist['peer'][0] if hist['peer'] else '*'
+    _latency = hist['latency']/1000000 if hist['latency'] else '*'
+    _errno = hist['errno']
     print(f"{_ttl:3d}: {_peer:30s}: {str(_latency):>10s} ms: [{_errno}]")
     
 
@@ -330,10 +332,10 @@ def main():
         _logger.error('-4 and -6 are exclusive.')
         sys.exit(-1)
     _t = Tracepath(_args.hostname[0],
-                   _ipv4=_args.ipv4,
-                   _ipv6=_args.ipv6,
-                   _max_hops=_args.max_hops)
-    _t.start(_display_callback=_display_callback_default)
+                   ipv4=_args.ipv4,
+                   ipv6=_args.ipv6,
+                   max_hops=_args.max_hops)
+    return _t.start(display_callback=_display_callback_default)
 
 
 if __name__ == '__main__':
