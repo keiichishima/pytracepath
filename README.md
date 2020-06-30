@@ -3,15 +3,31 @@
 This is a clone of tracepath function written in Python3. The program supports both IPv4 and IPv6.
 
 
+## Installation
+
+Install usinb `pip`, or type `python setup.py install`.
+
+
 ## Usage
 
-To show available options, call `tracepath.py` with option `-h`.
+A command line tool `pytracepath` is available.
 
 ```
-$ python tracepath.py -h
+$ pytracepath -h
+usage: pytracepath [-h] [-4] [-6] [-m MAX_HOPS] HOSTNAME
+
+positional arguments:
+  HOSTNAME
+
+optional arguments:
+  -h, --help   show this help message and exit
+  -4           use IPv4
+  -6           use IPv6
+  -m MAX_HOPS  maximum number of hops (TTL)
 ```
 
-## Usage as a Module
+
+## Using as a module
 
 ```
 import tracepath
@@ -21,3 +37,8 @@ tp.start()
 ```
 
 The `start()` method will return the histrory of responders of the probe packets.
+
+
+## Code
+
+The code is available at [Github](https://github.com/keiichishima/pytracepath).

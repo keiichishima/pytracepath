@@ -11,7 +11,7 @@ import socket
 import struct
 import time
 
-# sock_extended_err origin values
+# struct sock_extended_err origin values
 SO_EE_ORIGIN_LOCAL = 1
 SO_EE_ORIGIN_ICMP = 2
 SO_EE_ORIGIN_ICMP6 = 3
@@ -205,9 +205,10 @@ class Tracepath(object):
                     socket.MSG_ERRQUEUE)
                 # recvmsg succeeded to get ancillary data
             except OSError as _e:
-                _logger.debug('recvmsg failed')
+                _logger.debug(f'recvmsg failed: {_e}')
                 if _e.errno == socket.EAGAIN:
                     self._end = None
+                    self._errno = socket.EAGAIN
                     return False
 
             self._end = time.time_ns()
@@ -308,7 +309,7 @@ def _display_callback_default(_hist):
     print(f"{_ttl:3d}: {_peer:30s}: {str(_latency):>10s} ms: [{_errno}]")
     
 
-if __name__ == '__main__':
+def main():
     import sys
     #_handler = logging.StreamHandler()
     #_logger.setLevel(logging.DEBUG)
@@ -335,3 +336,5 @@ if __name__ == '__main__':
     _t.start(_display_callback=_display_callback_default)
 
 
+if __name__ == '__main__':
+    main()
