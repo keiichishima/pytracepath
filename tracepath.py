@@ -25,7 +25,6 @@ ICMPV6_TIME_EXCEEDED = 3
 ICMPV6_EXC_HOPLIMIT = 0
 
 # these constants should be defined in the socket module
-SOL_IPV6 = 41
 IP_RECVERR = 11
 IPV6_RECVERR = 25
 
@@ -111,12 +110,12 @@ class Tracepath(object):
 
         if self._dest[0] == socket.AF_INET:
             _socket.setsockopt(
-                socket.SOL_IP,
+                socket.IPPROTO_IP,
                 IP_RECVERR,
                 1)
         elif self._dest[0] == socket.AF_INET6:
             _socket.setsockopt(
-                SOL_IPV6,
+                socket.IPPROTO_IPV6,
                 IPV6_RECVERR,
                 1)
         else:
@@ -132,12 +131,12 @@ class Tracepath(object):
         _logger.debug(f'probing {self._dest[4]} with TTL {self._ttl}')
         if self._dest[0] == socket.AF_INET:
             self._socket.setsockopt(
-                socket.SOL_IP,
+                socket.IPPROTO_IP,
                 socket.IP_TTL,
                 self._ttl)
         elif self._dest[0] == socket.AF_INET6:
             self._socket.setsockopt(
-                SOL_IPV6,
+                socket.IPPROTO_IPV6,
                 socket.IPV6_UNICAST_HOPS,
                 self._ttl)
 
@@ -215,7 +214,7 @@ class Tracepath(object):
 
             (_ee_errno, _ee_origin, _ee_type, _ee_code, _ee_pad, _ee_info, _ee_data) = (None, None, None, None, None, None,None)
             for _level, _type, _data in _cmsgs:
-                if _level == socket.SOL_IP:
+                if _level == socket.IPPROTO_IP:
                     if _type == IP_RECVERR:
                         (_ee_errno, _ee_origin, _ee_type, _ee_code,
                          _ee_pad, _ee_info, _ee_data) = struct.unpack(
@@ -226,7 +225,7 @@ class Tracepath(object):
                             struct.unpack('!H', _data[18:20])[0]
                         ]
                         _logger.debug(f'error packet received from {self._peer_info}')
-                if _level == SOL_IPV6:
+                if _level == socket.IPPROTO_IPV6:
                     if _type == IPV6_RECVERR:
                         (_ee_errno, _ee_origin, _ee_type, _ee_code,
                          _ee_pad, _ee_info, _ee_data) = struct.unpack(
