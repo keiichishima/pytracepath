@@ -13,7 +13,7 @@ setuptools.setup(
     long_description_content_type='text/markdown',
     url='https://github.com/keiichishima/pytracepath',
     packages=setuptools.find_packages(),
-    py_modules=['tracepath'],
+    py_modules=['pytracepath'],
     classifiers=[
         'Intended Audience :: Developers',
         'Intended Audience :: System Administrators',

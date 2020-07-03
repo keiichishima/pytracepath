@@ -17,17 +17,19 @@ Install using `pip`, or type `python setup.py install`.
 A command line tool `pytracepath` is available.
 
 ```
-$ pytracepath -h
-usage: pytracepath [-h] [-4] [-6] [-m MAX_HOPS] HOSTNAME
+usage: pytracepath [-h] [-4] [-6] [-m MAX_HOPS] [-e MAX_CONTINUOUS_FAILS]
+                   HOSTNAME
 
 positional arguments:
   HOSTNAME
 
 optional arguments:
-  -h, --help   show this help message and exit
-  -4           use IPv4
-  -6           use IPv6
-  -m MAX_HOPS  maximum number of hops (TTL)
+  -h, --help            show this help message and exit
+  -4                    use IPv4
+  -6                    use IPv6
+  -m MAX_HOPS           maximum number of hops (TTL)
+  -e MAX_CONTINUOUS_FAILS
+                        maximum number of repeated probe fails
 ```
 
 
