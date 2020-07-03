@@ -36,12 +36,12 @@ optional arguments:
 ## Using as a module
 
 ```
-import tracepath
+import pytracepath
 
-tp = tracepath.Tracepath('target.example.org',
-                         ipv6=True,
-			 max_hops=15,
-			 max_continous_fail=5)
+tp = pytracepath.Tracepath('target.example.org',
+                           ipv6=True,
+                           max_hops=15,
+                           max_continous_fail=5)
 print(tp.start())
 ```
 
