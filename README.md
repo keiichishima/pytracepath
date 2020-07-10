@@ -4,6 +4,8 @@ This is a subset version of the `tracepath` command written in Python3. The prog
 
 One interesting point of this program is that it provides maximum continous failure count parameter to stop measurement when no response is received.
 
+This program doesn't require root privilege.
+
 Although this software is a pure Python3 code, it may not work on platforms other than Linux beacuse of lack of supported ancillary data types of the socket interface.
 
 
@@ -41,7 +43,7 @@ import pytracepath
 tp = pytracepath.Tracepath('target.example.org',
                            ipv6=True,
                            max_hops=15,
-                           max_continous_fail=5)
+                           max_continous_fails=5)
 print(tp.start())
 ```
 
