@@ -89,6 +89,15 @@ class Tracepath(object):
     def history(self):
         return self._history
 
+    @property
+    def farthest_point(self):
+        if len(self._history) == 0:
+            return None
+        for _h in reversed(self._history):
+            if _h['peer'] is not None:
+                return _h
+        return None
+
     def _is_final_dest(self):
         if self._dest is None or self._peer_info is None:
             return False
