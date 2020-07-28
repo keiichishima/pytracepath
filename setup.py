@@ -5,7 +5,7 @@ with open('README.md', 'r') as fh:
 
 setuptools.setup(
     name='pytracepath-keiichishima',
-    version='0.0.1',
+    version='0.1.1',
     author='Keiichi SHIMA',
     author_email='keiichi@iijlab.net',
     description='Tracepath implemented in Python3',

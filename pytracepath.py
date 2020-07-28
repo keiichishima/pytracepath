@@ -270,9 +270,9 @@ class Tracepath(object):
                     return True
                 return False
             if _ee_errno == errno.ENETUNREACH:
-                return False
+                return True
             if _ee_errno == errno.EACCES:
-                return False
+                return True
 
             return True
 
@@ -307,7 +307,9 @@ class Tracepath(object):
             if self._is_final_dest() == True:
                 _logger.debug(f'reached')
                 break
-            if self._errno == errno.EACCES:
+            if (self._errno == errno.EACCES
+                or self._errno == errno.ENETUNREACH):
+                # can we stop when receiving ENETUNREACH?
                 break
         return self._history
 
